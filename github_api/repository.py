@@ -83,18 +83,42 @@ class Repository:
 
         return self.get_request(commits_url, parameters=data)
 
-    @staticmethod
-    def get_request(url, parameters=None):
+    def get_request(self, url, parameters=None):
+        def execute_request(commit_url):
+            request = urllib.request.Request(
+                commit_url,
+                headers={
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Authorization': 'token ce5ec7f03769de50673dbcaace3a64650578ebfd'
+                },
+            )
+            return urllib.request.urlopen(request)
+
+        def return_commit(commit_open_request):
+            data = commit_open_request.read().decode('utf-8')
+            return json.loads(data)
 
         query_string = urllib.parse.urlencode(parameters)
         if query_string:
             url += "?" + query_string
 
-        request = urllib.request.Request(
-            url,
-            headers={'Accept': 'application/vnd.github.mercy-preview+json'},
-        )
-        open_request = urllib.request.urlopen(request)
-        data = open_request.read().decode('utf-8')
-        return json.loads(data)
+        open_request = execute_request(url)
+        commits = return_commit(open_request)
 
+        next_link = self.find_next_link(open_request.getheader('link'))
+
+        while next_link:
+            open_request = execute_request(next_link)
+            commits += return_commit(open_request)
+            print('.', end='')
+            next_link = self.find_next_link(open_request.getheader('link'))
+        return commits
+
+    @staticmethod
+    def find_next_link(links):
+        if not links:
+            return None
+        for link in links.split(','):
+            url, name = link.split(';')
+            if name.strip() == 'rel="next"':
+                return url.strip()[1:-1]

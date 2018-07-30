@@ -1,4 +1,5 @@
 from github_api.repository import *
+from collections import Counter
 
 
 class GitHubAnalyzer:
@@ -10,7 +11,9 @@ class GitHubAnalyzer:
 
     def get_active_contributors(self):
         commits = self._repository.get_commits()
-        print(commits)
-        exit(1)
-        return commits
+
+        counter = Counter(map(lambda commit: commit['author']['login'] if commit.get('author') else None, commits))
+        return counter.most_common(30)
+
+
 

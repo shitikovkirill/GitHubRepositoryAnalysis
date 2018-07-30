@@ -33,17 +33,20 @@ class CommandLine(cmd.Cmd):
         :return:
         """
         contributors = self._analyzer.get_active_contributors()
-        self.print_table(contributors)
+        self.print_contributors_table(contributors)
 
 
     def default(self, line):
         print("This command does not exist")
 
     @staticmethod
-    def print_table(data):
-        for item in data:
+    def print_contributors_table(data):
+        data.keys()
+        print('| {:^10} | {:^10} |'.format('login', 'count commit'))
+        print('-------------------------------------')
+        for key in data.keys():
             print('-------------------------------------')
-            print('| {:^10} |'*len(data).format(*item))
+            print('| {:^10} | {:^10} |'.format(key, data.get(key)))
 
 
 if __name__ == "__main__":
