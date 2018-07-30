@@ -28,56 +28,70 @@ class RepositoryUrl:
     """
     GitHub Repository url
     """
-    __url = None
-    __owner = None
-    __repository = None
-    __url_parser_regexp = r'^(https?://)?github\.com/(?P<owner>[^/]+)/(?P<repository>[^/]+)/?$'
+    _url = None
+    _owner = None
+    _repository = None
+    _url_parser_regexp = r'^(https?://)?github\.com/(?P<owner>[^/]+)/(?P<repository>[^/]+)/?$'
 
     def __init__(self, url):
-        self.__url = url
-        result = re.match(self.__url_parser_regexp, self.__url)
+        self._url = url
+        result = re.match(self._url_parser_regexp, self._url)
         if result is None:
-            raise NotValidRepositoryUrl(self.__url)
+            raise NotValidRepositoryUrl(self._url)
 
-        self.__owner = result.group('owner')
-        self.__repository = result.group('repository')
+        self._owner = result.group('owner')
+        self._repository = result.group('repository')
 
     def get_owner(self):
-        return self.__owner
+        return self._owner
 
     def get_repository(self):
-        return self.__repository
+        return self._repository
 
 
 class Repository:
     """
     GitHub Repository
     """
-    __repository_url = None
-    __data = None
+    _repository_url = None
+    _data = None
+    _start = None
+    _end = None
+    _branch = None
 
-    def __init__(self, url):
-        self.__repository_url = RepositoryUrl(url)
+    def __init__(self, url, start, end, branch):
+        self._repository_url = RepositoryUrl(url)
+        self._start = start
+        self._end = end
+        self._branch = branch
+
+    def get_commits(self):
+        url = 'https://api.github.com/repos/{owner}/{repo}/commits'.format(
+            owner=self._repository_url.get_owner(),
+            repo=self._repository_url.get_repository()
+        )
+        return self.get_request(url)
 
     def get_contributors(self):
         url = 'https://api.github.com/repos/{owner}/{repo}/contributors'.format(
-            owner=self.__repository_url.get_owner(),
-            repo=self.__repository_url.get_repository()
+            owner=self._repository_url.get_owner(),
+            repo=self._repository_url.get_repository()
         )
-        return self.__get_request(url)
+        return self.get_request(url)
 
     def get_repository_info(self):
         url = 'https://api.github.com/repos/{owner}/{repo}'.format(
-            owner=self.__repository_url.get_owner(),
-            repo=self.__repository_url.get_repository()
+            owner=self._repository_url.get_owner(),
+            repo=self._repository_url.get_repository()
         )
-        return self.__get_request(url)
+        return self.get_request(url)
 
     @staticmethod
-    def __get_request(url):
+    def get_request(url, data=None):
         request = urllib.request.Request(
             url,
-            headers={'Accept': 'application/vnd.github.mercy-preview+json'}
+            headers={'Accept': 'application/vnd.github.mercy-preview+json'},
+            data=data
         )
         open_request = urllib.request.urlopen(request)
         data = open_request.read().decode('utf-8')
@@ -88,13 +102,18 @@ class GitHubAnalyzer(cmd.Cmd):
     """
     GitHubAnalyzer
     """
-    __repository = None
+    _repository = None
 
     def __init__(self):
         cmd.Cmd.__init__(self)
+
+        start = sys.argv[2] if 2 < len(sys.argv) else None
+        end = sys.argv[3] if 3 < len(sys.argv) else None
+        branch = sys.argv[4] if 4 < len(sys.argv) else 'master'
+
         try:
             url = sys.argv[1]
-            self.__repository = Repository(url)
+            self._repository = Repository(url, start, end, branch)
         except IndexError:
             print('Enter the first required parameter URL (url on github repository)')
             exit(1)
@@ -108,7 +127,7 @@ class GitHubAnalyzer(cmd.Cmd):
         :param args:
         :return:
         """
-        contributors = self.__repository.get_contributors()
+        contributors = self._repository.get_contributors()
         sorted(contributors, key=lambda contributor: contributor['contributions'])
         print('| {:^10} | {:^10} |'.format('login', 'contributions'))
         print('-------------------------------------')
