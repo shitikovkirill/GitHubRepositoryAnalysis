@@ -110,7 +110,11 @@ class GitHubAnalyzer(cmd.Cmd):
         """
         contributors = self.__repository.get_contributors()
         sorted(contributors, key=lambda contributor: contributor['contributions'])
-        contributors[:10]
+        print('| {:^10} | {:^10} |'.format('login', 'contributions'))
+        print('-------------------------------------')
+        for contributor in contributors[:30]:
+            print('-------------------------------------')
+            print('| {:^10} | {:^10} |'.format(contributor['login'], contributor['contributions']))
 
     def default(self, line):
         print("This command does not exist")
