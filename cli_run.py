@@ -41,12 +41,11 @@ class CommandLine(cmd.Cmd):
 
     @staticmethod
     def print_contributors_table(data):
-        data.keys()
-        print('| {:^10} | {:^10} |'.format('login', 'count commit'))
+        print('| {:^20} | {:^10} |'.format('login', 'count commit'))
         print('-------------------------------------')
-        for key in data.keys():
+        for item in data:
             print('-------------------------------------')
-            print('| {:^10} | {:^10} |'.format(key, data.get(key)))
+            print('| {:^20} | {:^10} |'.format(str(item[0]), item[1]))
 
 
 if __name__ == "__main__":

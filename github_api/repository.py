@@ -4,6 +4,19 @@ import urllib.parse
 import json
 
 
+class NotValidRepositoryTime(Exception):
+    """
+    Validation of repository url
+    """
+
+    def __init__(self):
+        self.message = 'You mast add time in this format "YYYY-MM-DDTHH:MM:SSZ"'
+        super.__init__()
+
+    def __str__(self):
+        return repr(self.message)
+
+
 class NotValidRepositoryUrl(Exception):
     """
     Validation of repository url
@@ -42,6 +55,17 @@ class RepositoryUrl:
         return self._repository
 
 
+class RepositoryTime:
+    _time_regexp = "\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[1-2]\d|3[0-1])T(?:[0-1]\d|2[0-3]):[0-5]\d:[0-5]\dZ"
+
+    def validate(self, time):
+        if time is None:
+            return
+        result = re.match(self._time_regexp, time)
+        if result is None:
+            raise NotValidRepositoryTime
+
+
 class Repository:
 
     _github_api = "https://api.github.com"
@@ -53,8 +77,13 @@ class Repository:
 
     def __init__(self, url, branch='master', start=None, end=None):
         self._repository_url = RepositoryUrl(url)
+
+        time = RepositoryTime()
+        time.validate(start)
+        time.validate(end)
         self._start = start
         self._end = end
+
         self._branch = branch
 
     def get_repository_url(self):
@@ -89,7 +118,6 @@ class Repository:
                 commit_url,
                 headers={
                     'Accept': 'application/vnd.github.v3+json',
-                    'Authorization': 'token ce5ec7f03769de50673dbcaace3a64650578ebfd'
                 },
             )
             return urllib.request.urlopen(request)
@@ -112,6 +140,7 @@ class Repository:
             commits += return_commit(open_request)
             print('.', end='')
             next_link = self.find_next_link(open_request.getheader('link'))
+        print('.')
         return commits
 
     @staticmethod
