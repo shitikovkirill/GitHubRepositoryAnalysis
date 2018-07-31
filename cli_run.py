@@ -33,27 +33,36 @@ class CommandLine(cmd.Cmd):
         :return:
         """
         contributors = self._analyzer.get_active_contributors()
-        self.print_contributors_table(contributors)
+        self.print_table(contributors, ['login', 'count commit'])
 
-    def do_count_of_pull_requests(self, args):
+    def do_pull_requests(self, args):
         """
-
+        Count of open and close pull requests
         :param args:
         :return:
         """
-        pull_requests = self._analyzer.get_count_of_pull_requests()
-        self.print_contributors_table(pull_requests)
+        pull_requests = self._analyzer.get_pull_requests()
+        self.print_table(pull_requests, ['status', 'count'])
+
+    def do_old_pull_requests(self, args):
+        """
+        Old pull requests
+        :param args:
+        :return:
+        """
+        pull_requests = self._analyzer.get_old_pull_requests()
+        self.print_table(pull_requests, ['status', 'count'])
 
     def default(self, line):
         print("This command does not exist")
 
     @staticmethod
-    def print_contributors_table(data):
-        print('| {:^20} | {:^10} |'.format('login', 'count commit'))
-        print('-------------------------------------')
+    def print_table(data, head):
+        print(('| {:^20} |' * len(head)).format(*head))
+        print('------------------------------------------------')
         for item in data:
-            print('-------------------------------------')
-            print('| {:^20} | {:^10} |'.format(str(item[0]), item[1]))
+            print('------------------------------------------------')
+            print(('| {:^20} |' * len(item)).format(*item))
 
 
 if __name__ == "__main__":
