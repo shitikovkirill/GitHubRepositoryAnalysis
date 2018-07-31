@@ -35,6 +35,14 @@ class CommandLine(cmd.Cmd):
         contributors = self._analyzer.get_active_contributors()
         self.print_contributors_table(contributors)
 
+    def do_count_of_pull_requests(self, args):
+        """
+
+        :param args:
+        :return:
+        """
+        pull_requests = self._analyzer.get_count_of_pull_requests()
+        self.print_contributors_table(pull_requests)
 
     def default(self, line):
         print("This command does not exist")

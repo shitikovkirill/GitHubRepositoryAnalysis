@@ -86,31 +86,42 @@ class Repository:
 
         self._branch = branch
 
-    def get_repository_url(self):
-        return '{host}/repos/{owner}/{repo}'.format(
-            host=self._github_api,
-            owner=self._repository_url.get_owner(),
-            repo=self._repository_url.get_repository()
+    def get_pull_requests(self):
+        requests_url = self.get_pull_requests_url()
+        query_parameters = {'state': 'all'}
+
+        return self.get_request(requests_url, query_parameters)
+
+    def get_pull_requests_url(self):
+        return '{repository}/pulls'.format(
+            repository=self.get_repository_url(),
         )
+
+    def get_commits(self, page=1):
+        commits_url = self.get_commits_url()
+        query_parameters = {
+            'sha': self._branch,
+            'page': page
+        }
+        if self._start:
+            query_parameters['since'] = self._start
+
+        if self._end:
+            query_parameters['until'] = self._end
+
+        return self.get_request(commits_url, parameters=query_parameters)
 
     def get_commits_url(self):
         return '{repository}/commits'.format(
             repository=self.get_repository_url(),
         )
 
-    def get_commits(self, page=1):
-        commits_url = self.get_commits_url()
-        data = {
-            'sha': self._branch,
-            'page': page
-        }
-        if self._start:
-            data['since'] = self._start
-
-        if self._end:
-            data['until'] = self._end
-
-        return self.get_request(commits_url, parameters=data)
+    def get_repository_url(self):
+        return '{host}/repos/{owner}/{repo}'.format(
+            host=self._github_api,
+            owner=self._repository_url.get_owner(),
+            repo=self._repository_url.get_repository()
+        )
 
     def get_request(self, url, parameters=None):
         def execute_request(commit_url):
@@ -126,9 +137,10 @@ class Repository:
             data = commit_open_request.read().decode('utf-8')
             return json.loads(data)
 
-        query_string = urllib.parse.urlencode(parameters)
-        if query_string:
-            url += "?" + query_string
+        if parameters:
+            query_string = urllib.parse.urlencode(parameters)
+            if query_string:
+                url += "?" + query_string
 
         open_request = execute_request(url)
         commits = return_commit(open_request)
