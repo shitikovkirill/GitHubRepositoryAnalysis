@@ -86,6 +86,19 @@ class Repository:
 
         self._branch = branch
 
+    def get_issues(self, state='all'):
+        issues_url = self.get_issues_url()
+        query_parameters = {
+            'state': state
+        }
+
+        return self.get_request(issues_url, query_parameters)
+
+    def get_issues_url(self):
+        return '{repository}/issues'.format(
+            repository=self.get_repository_url(),
+        )
+
     def get_pull_requests(self, state='all'):
         requests_url = self.get_pull_requests_url()
         query_parameters = {

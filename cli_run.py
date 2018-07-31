@@ -32,6 +32,7 @@ class CommandLine(cmd.Cmd):
         :param args:
         :return:
         """
+        print('Active contributors')
         contributors = self._analyzer.get_active_contributors()
         self.print_table(contributors, ['login', 'count commit'])
 
@@ -41,6 +42,7 @@ class CommandLine(cmd.Cmd):
         :param args:
         :return:
         """
+        print('Pull requests')
         pull_requests = self._analyzer.get_pull_requests()
         self.print_table(pull_requests, ['status', 'count'])
 
@@ -50,8 +52,29 @@ class CommandLine(cmd.Cmd):
         :param args:
         :return:
         """
+        print('Old pull requests')
         pull_requests = self._analyzer.get_old_pull_requests()
         self.print_table(pull_requests, ['status', 'count'])
+
+    def do_issues(self, args):
+        """
+        Issues
+        :param args:
+        :return:
+        """
+        print('Issues')
+        issues = self._analyzer.get_issues()
+        self.print_table(issues, ['status', 'count'])
+
+    def do_old_issues(self, args):
+        """
+        Old issues
+        :param args:
+        :return:
+        """
+        print('Old issues')
+        issues = self._analyzer.get_old_issues()
+        self.print_table(issues, ['status', 'count'])
 
     def default(self, line):
         print("This command does not exist")
